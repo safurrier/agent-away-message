@@ -1,0 +1,2 @@
+{"schema_version":1,"harness":"codex","session_id":"e4d909c290d0fb1ca068ffaddf22cbd0","event":"codex.pre_tool_use","occurred_at":"2026-01-01T00:00:00+00:00","expires_at":"2099-01-01T00:00:00+00:00","provenance":"fixture","public_activity_hint":"battling the build"}
+{"schema_version":1,"harness":"pi","session_id":"6f1ed002ab5595859014ebf0951522d9","event":"pi.agent_end","occurred_at":"2026-01-01T00:00:01+00:00","expires_at":"2099-01-01T00:00:00+00:00","provenance":"fixture","public_activity_hint":"waiting for a reply"}

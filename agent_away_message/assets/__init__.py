@@ -1,0 +1,1 @@
+"""Packaged native integration assets."""

@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [{"hooks": [{"type": "command", "command": "agent-away-message codex-hook"}]}],
+    "PreToolUse": [{"hooks": [{"type": "command", "command": "agent-away-message codex-hook"}]}],
+    "PostToolUse": [{"hooks": [{"type": "command", "command": "agent-away-message codex-hook"}]}],
+    "Stop": [{"hooks": [{"type": "command", "command": "agent-away-message codex-hook"}]}]
+  }
+}

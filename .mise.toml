@@ -1,0 +1,45 @@
+#:schema https://mise.jdx.dev/schema/mise.json
+
+[tools]
+python = "3.12"
+uv = "latest"
+
+[tasks.setup]
+description = "Create the development environment and install dependencies"
+run = "uv sync --all-extras"
+
+[tasks.fmt]
+description = "Format Python and TypeScript sources"
+run = "uv run ruff format agent_away_message tests"
+
+[tasks.lint]
+description = "Check formatting and linting"
+run = "uv run ruff format --check agent_away_message tests && uv run ruff check agent_away_message tests"
+
+[tasks.typecheck]
+description = "Run static type checking"
+run = "uv run ty check agent_away_message"
+
+[tasks.test]
+description = "Run deterministic unit and CLI tests"
+run = "uv run pytest"
+
+[tasks.check]
+description = "Run the local fast quality gate"
+depends = ["lint", "typecheck", "test"]
+
+[tasks.ci]
+description = "CI entrypoint; identical to check"
+depends = ["check"]
+
+[tasks.verify]
+description = "Run the deterministic end-to-end smoke suite"
+run = "uv run pytest tests/test_e2e.py tests/test_integrations.py"
+
+[tasks.dogfood]
+description = "Inspect a synthetic privacy-safe fixture"
+run = "uv run agent-away-message --json fixture inspect tests/fixtures/dogfood-events.jsonl"
+
+[tasks.dev]
+description = "Run the foreground preview daemon"
+run = "uv run agent-away-message --json daemon --once"
