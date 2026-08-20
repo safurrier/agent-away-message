@@ -11,11 +11,13 @@ index:
 
 # Tested local-model setups
 
-This optional tutorial records commands tested in this project's local dogfood with llama.cpp. It is not required for the command backend. These commands are version-sensitive: use a llama.cpp build that supports the shown flags, and check `llama-server --help` before substituting a build or model revision.
+These llama.cpp commands worked in local dogfood runs. They're optional and don't apply to command backends. llama.cpp flags change, so run `llama-server --help` before using another build or model revision.
+
+The original runs didn't retain an exact llama.cpp revision or hardware record. Treat these as known-working examples, not benchmarks, and not portable hardware recommendations.
 
 ## Qwen 3.5 4B Q4
 
-The tested server used the `qwen3.5-4b-q4` alias on port 8012:
+Local dogfood used the `qwen3.5-4b-q4` alias on port 8012:
 
 ```bash
 llama-server \
@@ -30,11 +32,16 @@ llama-server \
   --metrics
 ```
 
-Use `http://127.0.0.1:8012/v1` and `qwen3.5-4b-q4` in both local backend tables.
+Configure both local stages with:
 
-## Qwen 3.6 27B Q8 MTP
+```toml
+url = "http://127.0.0.1:8012/v1"
+model = "qwen3.5-4b-q4"
+```
 
-The tested MTP server used the `qwen3.6-27b-q8-mtp` alias on port 8080:
+## Qwen 3.6 27B Q8 with multi-token prediction
+
+Local dogfood used the `qwen3.6-27b-q8-mtp` alias on port 8080:
 
 ```bash
 llama-server \
@@ -49,4 +56,13 @@ llama-server \
   --metrics
 ```
 
-Use `http://127.0.0.1:8080/v1` and `qwen3.6-27b-q8-mtp` in both local backend tables. This larger configuration needs enough host and GPU memory for its model, context, and draft-MTP setup.
+Configure both local stages with:
+
+```toml
+url = "http://127.0.0.1:8080/v1"
+model = "qwen3.6-27b-q8-mtp"
+```
+
+This model, context size, and multi-token prediction setup needs substantially more host and accelerator memory than the 4B example. Reduce the context or choose a smaller quantization when the server can't load the model.
+
+For every setup, keep the server bound to loopback. agent-away-message rejects non-loopback local backend URLs.

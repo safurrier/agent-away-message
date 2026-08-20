@@ -1,7 +1,7 @@
 ---
 id: agent-away-message-prompt-style-evaluation
 title: Prompt style evaluation
-description: Sanitized prompt findings for AIM-style coding-agent statuses.
+description: Sanitized prompt findings for AOL Instant Messenger-style coding-agent statuses.
 index:
   - id: selected-positive-direction
     title: Selected positive direction
@@ -19,7 +19,9 @@ index:
 
 # Prompt style evaluation
 
-This note preserves only synthetic or manually sanitized examples. It contains no raw history, local paths, session metadata, repositories, people, customers, or copied private source.
+This note contains synthetic or manually sanitized examples only. It excludes raw history, local paths, session metadata, repositories, people, customers, and copied private source.
+
+The replay notes retain mode, sample counts, and outcomes. The original runs didn't retain exact model/backend versions, so these are prompt-selection observations rather than reproducible benchmarks.
 
 ## Selected positive direction
 
@@ -27,38 +29,42 @@ This note preserves only synthetic or manually sanitized examples. It contains n
 - `apparently, embeddings come with paperwork`
 - `the adapter remains unconvinced by the install path`
 
-These were selected for dry understatement, task-linked mild oddness, and recognizable AIM-status brevity. They are inspiration, not few-shot examples: prompts must not copy their words, cadence, ordering, syntax, or recurring personification device.
+These have the intended voice: brief, dry, slightly odd, and tied to the work. Treat them as direction, not templates. Don't reuse their wording or sentence patterns.
 
 ## Known failures
 
 - Literal absence templates: `away for a bit`, `back shortly`, `while i'm away`.
 - Generic progress copy: `making steady progress`, `keeping things moving`.
 - Repeated gerund openings: `checking...`, `reviewing...`, `writing...` on every line.
-- Count-only traffic/machinery formulas detached from the task.
+- Count-only traffic or machinery formulas detached from the task.
 - Mandatory two-clause quips, repeated anthropomorphism, random-noun surrealism, faux nostalgia, or polished brand copy.
-- Strict prompts that cause high abstention or merely restate the admitted activity.
+- Strict prompts that cause high abstention or simply restate the admitted activity.
 
 ## First 24-hour replay
 
-The first raw-free candid replay attempted 12 samples: 8 admitted candid activity, 4 reduced to generic, and 0 generation errors. It confirmed the pipeline operates, but exposed two abstract style failures:
+First replay: 12 samples. Eight kept candid activity, four fell back to generic, and none failed generation. Two style problems stood out:
 
-- candid statuses often restated the activity and appended a clause about agents;
-- generic statuses repeatedly described harnesses, agents, hum, bustle, or traffic instead of the work surface.
+- Candid statuses often repeated the activity and added a clause about agents.
+- Generic statuses described harnesses, hum, bustle, or traffic instead of the work surface.
 
-The revised writer prompt describes the work itself, omits user/agent/harness framing, transforms candid activity rather than echoing it, and keeps generic output task-agnostic.
+The next writer prompt described the work directly, removed user/agent/harness framing, transformed candid activity instead of echoing it, and kept generic output task-agnostic.
 
 ## Second 24-hour replay
 
-Both mode-faithful replays generated 12 of 12 statuses. Candid admitted all 12 activities, and neither mode reported generation errors. Generic output fell into a congestion/spatial-metaphor monoculture. Candid output fell into personification and repeated getting/being/acquiring constructions. Prescriptive anti-pattern guidance had merely moved repetition into new templates.
+The generic and candid replays each produced 12 of 12 statuses without generation errors. Candid admitted all 12 activities.
+
+Generic statuses overused traffic and space metaphors. Candid statuses overused personification and `getting`, `being`, or `acquiring`. More anti-pattern rules had only created new templates.
 
 ## Accepted-history diversity pass
 
-The writer prompt now uses minimal positive guidance. Up to twelve previously accepted public statuses are passed only as negative style examples, with a direct instruction to avoid their central image, notable vocabulary, opening grammar, sentence skeleton, and cadence. Exact-duplicate rejection remains deterministic; no similarity score or extra judge call was added.
+The writer prompt now uses minimal positive guidance. It receives up to 12 previously accepted public statuses only as negative style examples. The prompt asks it to avoid their central image, notable vocabulary, opening grammar, sentence skeleton, and cadence. Deterministic validation still rejects exact duplicates. There is no similarity score or extra judge call.
 
-A subsequent raw-free replay generated 12 of 12 generic statuses and 12 of 12 candid statuses without generation errors. Candid admitted 11 activities and made one explicit generic fallback. Generic output retained unavoidable load vocabulary but substantially reduced its prior congestion-image monoculture. Candid removed the repeated getting/being/acquiring frame and varied its syntax while keeping admitted activities recognizable; restrained task-grounded personification remained part of the selected voice.
+A later replay generated 12 of 12 generic statuses and 12 of 12 candid statuses without generation errors. Candid admitted 11 activities and used one explicit generic fallback. Generic statuses still used load-related words but repeated the traffic metaphor less often. Candid statuses dropped the repeated `getting`/`being`/`acquiring` frame, varied their syntax, and kept admitted activities recognizable. Restrained task-grounded personification remained part of the selected voice.
 
-Live preview later showed that rapidly changing candid activity could repeat one accurate topic across several otherwise distinct statuses. The writer now treats a topical word or phrase appearing in at least three recent accepted statuses as saturated and prefers a truthful paraphrase or another facet when available. This remains advisory prompt guidance: task grounding wins, and no vocabulary counter, rejection heuristic, judge call, or fallback was added.
+Live preview then showed that rapidly changing candid activity could repeat one accurate topic across several otherwise distinct statuses. When the same topic appears in at least three recent accepted statuses, the prompt asks for a truthful paraphrase or another available facet. Task grounding still wins. There is no vocabulary counter, rejection rule, judge call, or fallback.
 
 ## Product correction
 
-The status is an update about work, not a claim that the user is absent and not a report about agents. Generic mode is deliberately task-agnostic. Candid mode must preserve a broad admitted task after privacy reduction. Automated checks validate privacy and structure; final vibe selection remains human judgment over representative replay output.
+The status describes current work. It doesn't claim that the user is absent, and it isn't a report about agents.
+
+Generic mode remains task-agnostic. In candid mode, the prompt asks the writer to keep a broad admitted task recognizable after privacy reduction. Automated checks validate privacy and structure, not semantic faithfulness. Humans still select the final voice from representative replay output.

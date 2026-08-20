@@ -14,7 +14,11 @@ REQUIRED = (
     DOCS_DIR / "explanation" / "decision-ledger.md",
     DOCS_DIR / "evaluations" / "prompt-style.md",
     DOCS_DIR / "how-to" / "README.md",
+    DOCS_DIR / "how-to" / "inspect-history.md",
+    DOCS_DIR / "how-to" / "publish-discord.md",
     DOCS_DIR / "reference" / "README.md",
+    DOCS_DIR / "reference" / "cli.md",
+    DOCS_DIR / "reference" / "configuration.md",
     DOCS_DIR / "tutorials" / "README.md",
     DOCS_DIR / "tutorials" / "local-qwen.md",
 )
