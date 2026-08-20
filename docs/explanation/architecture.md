@@ -9,6 +9,14 @@ index: []
 
 agent-away-message separates exact lifecycle evidence from generated display text. Native Pi and Codex hooks determine which sessions are active. Models can change the sentence shown beside that count, but they can't create, remove, or reinterpret an active session.
 
+## Animated overview
+
+[![Animated architecture diagram showing lifecycle hooks splitting into an exact count path and a privacy-reduced status path](../assets/architecture/agent-away-message-flow.gif)](../assets/architecture/agent-away-message-flow.mp4)
+
+This animation shows the main authority split, not every queue, cache, or failure path. Use the detailed flow below for the complete contract.
+
+[Open the H.264 animation](../assets/architecture/agent-away-message-flow.mp4) · [View the static diagram](../assets/architecture/agent-away-message-flow.png) · [Edit the Excalidraw source](../assets/architecture/agent-away-message-flow.excalidraw)
+
 ## Data flow
 
 ```text

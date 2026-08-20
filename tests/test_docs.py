@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DOCS_DIR = PROJECT_ROOT / "docs"
+ARCHITECTURE_ASSETS = DOCS_DIR / "assets" / "architecture"
 REQUIRED = (
     DOCS_DIR / "README.md",
     DOCS_DIR / "explanation" / "README.md",
@@ -59,6 +61,29 @@ def test_readme_has_a_source_install_and_safe_first_result() -> None:
     assert "fixture inspect tests/fixtures/dogfood-events.jsonl" in readme
     assert '# {"active_agents": 2, "records": 2, "valid": true}' in readme
     assert "docs/assets/branding/discord-application-icon.png" in readme
+
+
+def test_architecture_animation_bundle_is_valid_and_linked() -> None:
+    stem = ARCHITECTURE_ASSETS / "agent-away-message-flow"
+    gif = stem.with_suffix(".gif")
+    mp4 = stem.with_suffix(".mp4")
+    png = stem.with_suffix(".png")
+    scene = stem.with_suffix(".excalidraw")
+
+    assert gif.read_bytes()[:6] in {b"GIF87a", b"GIF89a"}
+    assert b"ftyp" in mp4.read_bytes()[:32]
+    assert png.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert json.loads(scene.read_text(encoding="utf-8"))["type"] == "excalidraw"
+
+    readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+    architecture = (DOCS_DIR / "explanation" / "architecture.md").read_text(
+        encoding="utf-8"
+    )
+    for suffix in ("gif", "mp4", "png", "excalidraw"):
+        assert f"docs/assets/architecture/agent-away-message-flow.{suffix}" in readme
+        assert (
+            f"../assets/architecture/agent-away-message-flow.{suffix}" in architecture
+        )
 
 
 def test_project_context_exists() -> None:

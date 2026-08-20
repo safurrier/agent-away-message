@@ -12,6 +12,14 @@ AOL Instant Messenger-style Discord status updates for unattended Pi and Codex c
 
 The active-agent count comes from lifecycle events. Privacy reduction happens before the model writes the sentence.
 
+## How it works
+
+[![Animated architecture diagram showing Pi and Codex lifecycle hooks splitting into an exact count path and a privacy-reduced status path before meeting in Discord](docs/assets/architecture/agent-away-message-flow.gif)](docs/assets/architecture/agent-away-message-flow.mp4)
+
+The animation is a simplified overview. The lifecycle path owns the exact count. The separate candid path reduces bounded task context before the status writer produces public prose.
+
+[Open the H.264 animation](docs/assets/architecture/agent-away-message-flow.mp4) · [View the static diagram](docs/assets/architecture/agent-away-message-flow.png) · [Edit the Excalidraw source](docs/assets/architecture/agent-away-message-flow.excalidraw)
+
 ## Quick start
 
 agent-away-message supports macOS and Linux. You need Python 3.12 or newer, [uv](https://docs.astral.sh/uv/), and Git. The project installs from a checkout. There is no PyPI release.
