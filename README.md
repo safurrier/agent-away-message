@@ -1,20 +1,33 @@
-# Agent activity status
+# agent-away-message
 
 <p align="center">
   <img src="docs/assets/branding/discord-application-icon.png" width="256" alt="A cursor-headed coding agent working at a retro computer beside a mountain lake">
 </p>
 
-Local-first AIM-style status updates for unattended Pi and Codex coding agents. Exact native lifecycle events determine presence; generated prose is advisory. Preview is the default and never contacts Discord.
+AOL Instant Messenger-style Discord status updates for unattended Pi and Codex coding agents. Exact native lifecycle events determine presence. Generated prose is advisory. Preview is the default and never contacts Discord.
 
 ## What it looks like
 
 ![Discord Rich Presence showing coding agents at work](docs/assets/discord-rich-presence.png)
 
-The count comes from exact native lifecycle events. The activity sentence is privacy-reduced advisory prose.
+The active-agent count comes from lifecycle events. Privacy reduction happens before the model writes the sentence.
 
-## Install from source
+## How it works
 
-Prerequisites: Python 3.12+, [uv](https://docs.astral.sh/uv/), and Git. This project is installed from a checkout; it is not a PyPI release.
+[![Animated architecture diagram showing Pi and Codex lifecycle hooks splitting into an exact count path and a privacy-reduced status path before meeting in Discord](docs/assets/architecture/agent-away-message-flow.gif)](docs/assets/architecture/agent-away-message-flow.mp4)
+
+The animation is a simplified overview. The lifecycle path owns the exact count. The separate candid path reduces bounded task context before the status writer produces public prose.
+
+<details>
+<summary>View the static diagram</summary>
+
+![Static architecture diagram showing Pi and Codex lifecycle hooks splitting into an exact count path and a privacy-reduced status path before meeting in Discord](docs/assets/architecture/agent-away-message-flow.png)
+
+</details>
+
+## Quick start
+
+agent-away-message supports macOS and Linux. You need Python 3.12 or newer, [uv](https://docs.astral.sh/uv/), and Git. The project installs from a checkout. There is no PyPI release.
 
 ```bash
 git clone https://github.com/safurrier/agent-away-message.git agent-away-message
@@ -24,35 +37,42 @@ export PATH="$PWD/.bin:$PATH"
 agent-away-message --help
 ```
 
-The explicit tool-bin directory keeps the source install local to the checkout; exporting it lets `setup` embed the same executable path in native integrations.
+This puts the command launcher in the checkout-local `.bin` directory. `setup` can then embed that exact executable path in native integrations.
 
-First confirm the deterministic, privacy-safe fixture path (no model or Discord required):
+Before configuring a model, inspect the synthetic fixture:
 
 ```bash
 agent-away-message --json fixture inspect tests/fixtures/dogfood-events.jsonl
 # {"active_agents": 2, "records": 2, "valid": true}
 ```
 
-`mise run dogfood` runs the same fixture check for contributors, but mise is not required for the source-install path above.
+This is a deterministic, model-free check of lifecycle reduction and the persisted record contract.
 
-## Configure a model
+## Choose what the model can see
 
-By default, configuration is read from `agent-away-message/config.toml` under the platform user configuration directory: `~/.config/agent-away-message/config.toml` on Linux (or `$XDG_CONFIG_HOME`), `~/Library/Application Support/agent-away-message/config.toml` on macOS, and `%LOCALAPPDATA%\agent-away-message\config.toml` on Windows. Put a TOML file anywhere and select it explicitly with `--config`:
+| Mode | Generation input |
+| --- | --- |
+| `generic` | The writer receives active-agent count, harness mix, and bounded recent accepted public statuses. This is the default. |
+| `candid` | A first stage reduces bounded current-turn context to broad public activity. The writer receives aggregate facts, recent accepted public statuses, and admitted activities from live sessions. |
 
-```bash
-agent-away-message --config "$PWD/config.toml" --json doctor
-```
+Neither mode lets generated text determine whether an agent is active.
 
-A local OpenAI-compatible server is credential-free and must be loopback HTTP(S):
+## Configure generation
+
+Start a loopback OpenAI-compatible server. The [local llama.cpp examples](docs/tutorials/local-qwen.md) are optional. Any compatible server on `127.0.0.1`, `localhost`, or `::1` can provide both stages.
+
+Create `config.toml` in the checkout:
 
 ```toml
 schema_version = 2
 context_mode = "generic"
+
 [stage_one]
 backend = "local"
 [stage_one.local]
 url = "http://127.0.0.1:8012/v1"
 model = "local-model"
+
 [stage_two]
 backend = "local"
 [stage_two.local]
@@ -60,50 +80,43 @@ url = "http://127.0.0.1:8012/v1"
 model = "local-model"
 ```
 
-A trusted generic command adapter is also supported. Core executes the absolute executable directly (no shell), in a temporary directory, with an empty environment unless names are allowlisted. It sends one stdin JSON envelope and accepts one bounded UTF-8 stdout response:
+Check the route and integration paths without contacting the model or Discord:
 
-```toml
-[stage_two]
-backend = "command"
-[stage_two.command]
-executable = "/absolute/path/to/completion-adapter"
-args = []
-timeout_seconds = 90
-pass_environment = []
+```bash
+agent-away-message --config "$PWD/config.toml" --json doctor
 ```
 
-```json
-{"schema_version":1,"prompt":"..."}
-{"schema_version":1,"completion":"..."}
-```
-
-Core keeps prompts out of argv, its environment, persistent files, and diagnostics and discards child stderr. A trusted adapter can itself log or transmit stdin, so adapter behavior is outside that core guarantee. Command failure has no backend fallback; continuous publication may retain only recent validated public prose. Candid command stage one requires `privacy.allow_remote_context = true`; stage two receives only public aggregate/activity data.
-
-Optional [tested local-model server guidance](docs/tutorials/local-qwen.md) is kept outside this model-agnostic quick start.
+A trusted command adapter can replace either local stage. See the [configuration reference](docs/reference/configuration.md) for the JSON protocol, process isolation, environment allowlist, and candid consent requirement.
 
 ## Connect Pi or Codex
 
-Install either integration independently. The executable must be on `PATH`; the source-install steps above export the checkout-local tool directory. `setup` is additive and preserves existing hook entries.
+Install either integration independently. `setup` is additive and preserves existing hook entries.
 
 ### Pi
 
 ```bash
-agent-away-message setup \
+agent-away-message --config "$PWD/config.toml" setup \
   --pi-extension ~/.pi/agent/extensions/agent-away-message.ts
-agent-away-message --json doctor \
+agent-away-message --config "$PWD/config.toml" --json doctor \
   --pi-extension ~/.pi/agent/extensions/agent-away-message.ts
-# includes "executable": true and "pi_extension": true
 ```
 
 ### Codex
 
 ```bash
-agent-away-message setup --codex-config ~/.codex/hooks.json
-agent-away-message --json doctor --codex-config ~/.codex/hooks.json
-# includes "executable": true and "codex_hook": true
+agent-away-message --config "$PWD/config.toml" setup \
+  --codex-config ~/.codex/hooks.json
+agent-away-message --config "$PWD/config.toml" --json doctor \
+  --codex-config ~/.codex/hooks.json
 ```
 
-After a native lifecycle event, preview locally before enabling publication:
+Start or interact with a Pi or Codex session, then check the exact lifecycle state without calling a model:
+
+```bash
+agent-away-message --config "$PWD/config.toml" --json status
+```
+
+When `active_agents` is nonzero, generate a local preview:
 
 ```bash
 agent-away-message --config "$PWD/config.toml" preview
@@ -111,25 +124,48 @@ agent-away-message --config "$PWD/config.toml" preview
 
 ## Publish to Discord
 
-1. Create a Discord application in the [Discord Developer Portal](https://discord.com/developers/applications).
-2. Upload the retained [application icon](docs/assets/branding/discord-application-icon.png), then copy the application's **Application ID** as the client ID.
-3. Install and run the Discord desktop client on the same machine; Discord IPC is local.
-4. After confirming preview, start publication explicitly:
+Create a Discord application, upload the [provided application icon](docs/assets/branding/discord-application-icon.png), and copy its Application ID. Keep the Discord desktop client running on the same machine, then start the foreground daemon:
 
 ```bash
 agent-away-message --config "$PWD/config.toml" \
   --publication-mode discord daemon --discord-client-id YOUR_APPLICATION_ID
 ```
 
-Discord receives only validated status prose and exact count metadata.
+The daemon must remain running. See [Publish to Discord](docs/how-to/publish-discord.md) for the full setup and failure checks.
 
-## Limitations and troubleshooting
+## Privacy boundary
 
-- A loopback connection failure means start or correct the local compatible server.
-- `command response invalid` means the adapter did not return the exact JSON protocol; `command request failed` covers timeout, launch, and nonzero exit without exposing child output.
-- `doctor` reports safe configuration/integration failures; rerun `setup` with the relevant Pi or Codex path.
-- Discord failures usually mean the desktop client is not running, the client ID is wrong, or IPC is unavailable.
+| Destination | Data it receives |
+| --- | --- |
+| Local event store | Allowlisted lifecycle fields, keyed session identity, and already-admitted public activity metadata |
+| Generic writer | Count, harness mix, and recent accepted public statuses |
+| Candid reducer | Bounded current-turn context |
+| Discord | Validated status, active-agent count, and Rich Presence presentation metadata |
+
+Core keeps command prompts out of arguments, environment values, persistent files, and diagnostics. A trusted model server or command adapter can still log, write, or transmit its input. Core can't constrain that operator-controlled process.
+
+## Troubleshooting
+
 - No active lifecycle records means preview has nothing to publish.
-- Status prose is advisory: only exact lifecycle records determine presence. The core's process and persistence controls do not constrain a trusted command adapter's own logging, files, or network behavior.
+- A missed shutdown can remain active until its lifecycle record expires, for up to 30 minutes.
+- `doctor` checks configuration, routing, executable availability, and the integration paths you supply. It doesn't probe the model or Discord.
+- A loopback connection failure means the compatible server isn't running at the configured URL.
+- `command response invalid` means an adapter returned the wrong JSON shape. `command request failed` covers launch, timeout, and nonzero exit without exposing child output.
+- Discord failures usually mean the desktop client isn't running, the Application ID is wrong, or local Discord inter-process communication is unavailable.
 
-For the detailed contract see [SPEC.md](SPEC.md), [architecture](docs/explanation/architecture.md), and the [decision ledger](docs/explanation/decision-ledger.md).
+## Develop locally
+
+```bash
+mise run setup     # install development dependencies
+mise run check     # formatting, lint, types, and deterministic tests
+mise run verify    # deterministic end-to-end smoke tests
+mise run dogfood   # inspect the synthetic privacy-safe fixture
+```
+
+## Read the design
+
+- [Documentation index](docs/README.md)
+- [Product and interface contract](SPEC.md)
+- [Architecture and privacy boundaries](docs/explanation/architecture.md)
+- [Decision ledger](docs/explanation/decision-ledger.md)
+- [Prompt-style evaluation](docs/evaluations/prompt-style.md)

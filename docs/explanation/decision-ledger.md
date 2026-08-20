@@ -7,10 +7,10 @@ index: []
 
 # Decision ledger
 
-This is an append-only public-core record. Historical entries preserve the
-reason for still-relevant invariants; later entries supersede retired mechanics.
-They intentionally describe external execution generically and do not restore
-retired internal infrastructure.
+This append-only ledger records decisions that still shape the public core.
+Later entries mark superseded mechanics; earlier entries remain as history.
+External execution stays generic because retired internal infrastructure is no
+longer part of the contract.
 
 ## 2026-08-01 — exact event records and bounded public output
 

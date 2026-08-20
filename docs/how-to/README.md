@@ -1,11 +1,12 @@
 ---
 id: agent-away-message-how-to
-title: agent-away-message How-To Guides
+title: agent-away-message how-to guides
 description: Task-oriented recipes for operating agent-away-message.
 ---
 
-# How-To Guides
+# How-to guides
 
-The root [README](../../README.md) covers source installation, configuration,
-preview, native integration, Discord publication, and troubleshooting. Add
-narrower operational recipes here as those workflows mature.
+- [Publish to Discord](publish-discord.md) starts the explicit foreground publication daemon and checks common failures.
+- [Inspect local history safely](inspect-history.md) distinguishes structural inspection from bounded status replay.
+
+For the initial source install, model configuration, and native hook setup, follow the root [README](../../README.md).
