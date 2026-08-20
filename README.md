@@ -18,7 +18,12 @@ The active-agent count comes from lifecycle events. Privacy reduction happens be
 
 The animation is a simplified overview. The lifecycle path owns the exact count. The separate candid path reduces bounded task context before the status writer produces public prose.
 
-[Open the H.264 animation](docs/assets/architecture/agent-away-message-flow.mp4) · [View the static diagram](docs/assets/architecture/agent-away-message-flow.png) · [Edit the Excalidraw source](docs/assets/architecture/agent-away-message-flow.excalidraw)
+<details>
+<summary>View the static diagram</summary>
+
+![Static architecture diagram showing Pi and Codex lifecycle hooks splitting into an exact count path and a privacy-reduced status path before meeting in Discord](docs/assets/architecture/agent-away-message-flow.png)
+
+</details>
 
 ## Quick start
 

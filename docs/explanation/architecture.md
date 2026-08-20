@@ -15,7 +15,12 @@ agent-away-message separates exact lifecycle evidence from generated display tex
 
 This animation shows the main authority split, not every queue, cache, or failure path. Use the detailed flow below for the complete contract.
 
-[Open the H.264 animation](../assets/architecture/agent-away-message-flow.mp4) · [View the static diagram](../assets/architecture/agent-away-message-flow.png) · [Edit the Excalidraw source](../assets/architecture/agent-away-message-flow.excalidraw)
+<details>
+<summary>View the static diagram</summary>
+
+![Static architecture diagram showing lifecycle hooks splitting into an exact count path and a privacy-reduced status path](../assets/architecture/agent-away-message-flow.png)
+
+</details>
 
 ## Data flow
 

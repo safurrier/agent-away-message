@@ -79,11 +79,15 @@ def test_architecture_animation_bundle_is_valid_and_linked() -> None:
     architecture = (DOCS_DIR / "explanation" / "architecture.md").read_text(
         encoding="utf-8"
     )
-    for suffix in ("gif", "mp4", "png", "excalidraw"):
+    for suffix in ("gif", "mp4", "png"):
         assert f"docs/assets/architecture/agent-away-message-flow.{suffix}" in readme
         assert (
             f"../assets/architecture/agent-away-message-flow.{suffix}" in architecture
         )
+    for document in (readme, architecture):
+        assert "<summary>View the static diagram</summary>" in document
+        assert "Open the H.264 animation" not in document
+        assert "Edit the Excalidraw source" not in document
 
 
 def test_project_context_exists() -> None:
