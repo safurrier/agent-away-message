@@ -60,7 +60,7 @@ Core MUST treat every command backend as external. Candid command stage one MUST
 
 ## Interfaces and contracts
 
-Core commands are `daemon`, `preview`, `status`, `ingest`, `codex-hook`, `pi-hook`, `setup`, `doctor`, `simulate-history`, and `fixture inspect`.
+Core commands are `daemon`, `preview`, `status`, `ingest`, `codex-hook`, `pi-hook`, `setup`, `doctor`, `session-inspect`, `simulate-history`, and `fixture inspect`.
 
 Doctor and daemon SHOULD disclose backend kinds and whether candid raw context is shared externally. Hooks MUST fail soft and MUST NOT echo untrusted input. Setup MUST be additive.
 
