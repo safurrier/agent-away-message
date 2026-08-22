@@ -98,6 +98,12 @@ A continuous daemon quarantines an incompatible public-output cache by atomicall
 
 Command adapters receive one versioned JSON request on standard input. Core runs the absolute executable without a shell, in a neutral temporary directory, with an explicit environment allowlist and bounded duplex input/output. It discards child standard error and cleans up the process group. These controls can't prevent an operator-controlled adapter from logging or forwarding its input.
 
+## Discord account selection
+
+Discord Rich Presence uses local IPC rather than account credentials. When a user configures a Discord user ID, the publisher enumerates every reachable Stable, Canary, and platform-specific IPC endpoint. It performs a bounded READY-only handshake with each endpoint, validates the RPC frame, and retains only the connection whose READY user ID matches the configured account. The remaining probes are closed without publishing activity, and discovered identities are never persisted.
+
+Pipe numbers are transport details assigned by client startup order, not account identity. A reconnect therefore repeats endpoint discovery. If the configured account is absent or every endpoint is invalid, publication fails closed rather than falling back to another signed-in account. Omitting the user ID preserves pypresence's first-available behavior for backward compatibility.
+
 ## Historical inspection
 
 `session-inspect` reads one explicitly supplied session file and reports structural counts only.

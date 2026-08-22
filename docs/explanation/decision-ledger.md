@@ -227,3 +227,15 @@ longer part of the contract.
   canonical public specification.
 - **Why:** Durable contract truth belongs in project-owned documents, not generic
   scaffolding.
+
+## 2026-08-21 — select Discord publication by stable user ID
+
+- **Decision:** When configured, enumerate local Discord IPC endpoints and select
+  only the connection whose bounded READY handshake reports the requested stable
+  user ID. Repeat discovery after reconnects and fail closed when the account is
+  absent.
+- **Why:** Stable, Canary, and other clients acquire pipe numbers from startup
+  order, so a fixed pipe or first-available connection can publish on the wrong
+  signed-in account.
+- **Consequence:** Account discovery never publishes presence or persists
+  identity. Omitting the selector preserves the earlier first-available behavior.
