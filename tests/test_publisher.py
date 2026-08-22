@@ -11,6 +11,7 @@ from agent_away_message.publisher import (
     DiscordPublisher,
     PypresenceClient,
     _discord_endpoints,
+    _ReadyDiscordRpc,
     discover_discord_accounts,
 )
 
@@ -268,6 +269,22 @@ class FakeAccountRpcFactory:
 
 def endpoint_provider(*pipes: int):
     return lambda: [DiscordEndpoint(pipe, f"endpoint-{pipe}") for pipe in pipes]
+
+
+def test_ready_probe_connect_reuses_constructor_event_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_handshake(rpc: _ReadyDiscordRpc) -> None:
+        rpc.ready_payload = {"cmd": "DISPATCH", "evt": "READY", "data": {}}
+
+    monkeypatch.setattr(_ReadyDiscordRpc, "handshake", fake_handshake)
+    rpc = _ReadyDiscordRpc("application-id", endpoint=DiscordEndpoint(0, "unused"))
+    original_loop = rpc.loop
+
+    rpc.connect()
+
+    assert rpc.loop is original_loop
+    original_loop.close()
 
 
 def test_endpoint_discovery_keeps_same_pipe_from_distinct_runtime_roots(

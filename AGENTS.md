@@ -74,6 +74,10 @@ model-produced prose is advisory display input.
   handshake and rediscover it after reconnects. **NOT** persist account identities, fall
   back to another account, or treat a pipe number as account identity. **BECAUSE** Stable,
   Canary, and other Discord clients acquire pipe numbers from startup order.
+- **DO** let READY probes reuse the event loop created by pypresence `BaseClient` and
+  close that reachable loop with the probe. **NOT** call inherited `Presence.connect`
+  for probes. **BECAUSE** it replaces the constructor loop without closing it, leaking
+  one asyncio self-pipe pair per attempted endpoint.
 
 ## Related Context
 

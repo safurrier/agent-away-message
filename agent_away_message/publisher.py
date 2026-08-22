@@ -128,6 +128,12 @@ class _ReadyDiscordRpc(DiscordRpc):
         super().__init__(client_id, pipe=endpoint.pipe)
         self.endpoint = endpoint
 
+    def connect(self) -> None:
+        # Presence.connect replaces the BaseClient loop without closing it. Probe
+        # connections reuse their existing loop so every loop remains reachable
+        # for deterministic cleanup.
+        self.loop.run_until_complete(self.handshake())
+
     async def handshake(self) -> None:
         await self.create_reader_writer(self.endpoint.path)
         self.send_data(0, {"v": 1, "client_id": self.client_id})
