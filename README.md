@@ -124,14 +124,18 @@ agent-away-message --config "$PWD/config.toml" preview
 
 ## Publish to Discord
 
-Create a Discord application, upload the [provided application icon](docs/assets/branding/discord-application-icon.png), and copy its Application ID. Keep the Discord desktop client running on the same machine, then start the foreground daemon:
+Create a Discord application, upload the [provided application icon](docs/assets/branding/discord-application-icon.png), and copy its Application ID. If more than one Discord account is running locally, list the reachable accounts and select one by stable user ID:
 
 ```bash
+agent-away-message --json discord-accounts \
+  --discord-client-id YOUR_APPLICATION_ID
 agent-away-message --config "$PWD/config.toml" \
-  --publication-mode discord daemon --discord-client-id YOUR_APPLICATION_ID
+  --publication-mode discord daemon \
+  --discord-client-id YOUR_APPLICATION_ID \
+  --discord-user-id YOUR_DISCORD_USER_ID
 ```
 
-The daemon must remain running. See [Publish to Discord](docs/how-to/publish-discord.md) for the full setup and failure checks.
+The account selector is optional; omitting it preserves first-available Discord IPC behavior. The daemon must remain running. See [Publish to Discord](docs/how-to/publish-discord.md) for the full setup and failure checks.
 
 ## Privacy boundary
 
