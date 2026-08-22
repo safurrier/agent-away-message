@@ -19,6 +19,7 @@ Use `agent-away-message COMMAND --help` for current arguments and bounds.
 | `fixture inspect PATH` | Validate a synthetic lifecycle JSON Lines fixture and return aggregate counts. | Neither | Nothing |
 | `doctor` | Report safe configuration and supplied integration readiness. | Neither | Nothing |
 | `status` | Reduce persisted lifecycle records to current count and harness mix. | Neither | Nothing |
+| `discord-accounts` | List accounts reachable through local Discord IPC for an application ID. | Local Discord IPC handshake only; no presence update | Nothing |
 | `setup` | Add Codex hooks or install the packaged Pi extension. | Neither | Integration files unless `--dry-run` |
 | `ingest` | Append one exact lifecycle event and an optional already-public activity hint. | Neither | Lifecycle state, including the validated public hint when supplied |
 | `codex-hook` | Read one native Codex hook envelope from standard input. | No direct model or Discord call | Allowlisted lifecycle state |
@@ -39,6 +40,17 @@ agent-away-message --config "$PWD/config.toml" --json status
 ```
 
 `doctor` reports the resolved backend kinds and whether the configuration would share candid source with an external command backend. It checks only the integration paths you provide.
+
+## Select a local Discord account
+
+When multiple Discord desktop clients or accounts are running, inspect their local READY identities before starting the daemon:
+
+```bash
+agent-away-message --json discord-accounts \
+  --discord-client-id YOUR_APPLICATION_ID
+```
+
+The command closes every probe, does not publish a presence, and does not persist the returned identities. Pass the chosen stable `user_id` to `daemon --discord-user-id`. A configured daemon fails closed when that account is unavailable and discovers it again after reconnects; it never falls back to another account. Omitting the option preserves first-available behavior.
 
 ## Setup and dry run
 

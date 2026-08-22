@@ -32,13 +32,27 @@ agent-away-message --config "$PWD/config.toml" preview
 
 Don't enable Discord publication until the preview contains an acceptable public status.
 
+## Choose an account
+
+If multiple Discord clients or accounts are running, list the accounts reachable through local IPC:
+
+```bash
+agent-away-message --json discord-accounts \
+  --discord-client-id YOUR_APPLICATION_ID
+```
+
+This performs READY handshakes only. It does not publish a presence or persist the returned account identities. Copy the stable `user_id` for the account that should receive the presence.
+
 ## Start the foreground daemon
 
 ```bash
 agent-away-message --config "$PWD/config.toml" \
   --publication-mode discord daemon \
-  --discord-client-id YOUR_APPLICATION_ID
+  --discord-client-id YOUR_APPLICATION_ID \
+  --discord-user-id YOUR_DISCORD_USER_ID
 ```
+
+`--discord-user-id` is optional for backward compatibility. When supplied, the daemon selects only that account, fails closed instead of publishing through another account when it is absent, and repeats discovery after a disconnect. Without it, pypresence retains its first-available IPC behavior.
 
 Keep this process running. The daemon refreshes validated prose, publishes the current active-agent count, and keeps one elapsed-time start through status and count changes. It clears Rich Presence during an orderly shutdown.
 
@@ -57,6 +71,7 @@ Generated prose never determines the count.
 | --- | --- |
 | No Rich Presence appears | Confirm the Discord desktop client is running on the same machine. |
 | Connection or pipe error | Confirm local Discord inter-process communication is available and no sandbox blocks it. |
+| Configured account is unavailable | Run `discord-accounts` again and confirm the selected user ID is currently signed in. The daemon intentionally won't fall back to another account. |
 | Application not found | Recopy the Application ID from the Developer Portal. Don't use a bot token or public key. |
 | No active agents | Run `status`, then interact with a connected Pi or Codex session. |
 | Preview generation fails | Fix the model or command backend before debugging Discord. |

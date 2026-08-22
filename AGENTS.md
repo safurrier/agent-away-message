@@ -70,6 +70,10 @@ model-produced prose is advisory display input.
   figurative phrasing. **NOT** blanket-reject personification or force every status into
   plain progress prose. **BECAUSE** replay dogfood selected lines such as technical work
   acquiring paperwork or forming a committee over safer but formulaic alternatives.
+- **DO** target a configured Discord account by the stable user ID in each IPC READY
+  handshake and rediscover it after reconnects. **NOT** persist account identities, fall
+  back to another account, or treat a pipe number as account identity. **BECAUSE** Stable,
+  Canary, and other Discord clients acquire pipe numbers from startup order.
 
 ## Related Context
 

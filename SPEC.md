@@ -60,9 +60,11 @@ Core MUST treat every command backend as external. Candid command stage one MUST
 
 ## Interfaces and contracts
 
-Core commands are `daemon`, `preview`, `status`, `ingest`, `codex-hook`, `pi-hook`, `setup`, `doctor`, `session-inspect`, `simulate-history`, and `fixture inspect`.
+Core commands are `daemon`, `preview`, `status`, `ingest`, `codex-hook`, `pi-hook`, `setup`, `doctor`, `discord-accounts`, `session-inspect`, `simulate-history`, and `fixture inspect`.
 
 Doctor and daemon SHOULD disclose backend kinds and whether candid raw context is shared externally. Hooks MUST fail soft and MUST NOT echo untrusted input. Setup MUST be additive.
+
+`discord-accounts` MUST inspect only reachable local Discord IPC endpoints, MUST NOT publish presence, and MUST NOT persist discovered identities. Discord publication MAY target a stable Discord user ID. When configured, each connection and reconnection MUST select only an endpoint whose READY handshake reports that exact ID and MUST fail closed when it is absent. Without a configured user ID, publication MUST preserve first-available IPC behavior.
 
 A persisted lifecycle record contains only schema version, harness, opaque keyed session digest, exact event/time/provenance, and already-admitted public activity metadata. It MUST NOT contain hook payloads, prompts, commands, paths, model text, source, or errors. Hooks MUST discard unknown fields.
 
@@ -76,7 +78,7 @@ The command response cap MUST apply while core reads bytes, not after capture. C
 
 ## Invariants
 
-Lifecycle evidence alone determines liveness. Stage two never receives raw source. Command prompts never appear in process arguments, environment values, persistent files, or diagnostics. Continuous publication MAY use bounded, validated public history only within its retention limit.
+Lifecycle evidence alone determines liveness. Stage two never receives raw source. Command prompts never appear in process arguments, environment values, persistent files, or diagnostics. Continuous publication MAY use bounded, validated public history only within its retention limit. Discord account discovery never emits a presence update or persists local account identity.
 
 ## Acceptance
 

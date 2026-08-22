@@ -9,6 +9,7 @@ import agent_away_message.cli as cli_module
 from agent_away_message.cli import cli
 from agent_away_message.daemon import PreviewGenerationError
 from agent_away_message.generation import MalformedCandidateError
+from agent_away_message.publisher import DiscordAccount
 
 
 def test_ingest_and_status_return_aggregate_json(tmp_path) -> None:
@@ -34,6 +35,95 @@ def test_ingest_and_status_return_aggregate_json(tmp_path) -> None:
     assert json.loads(status.output)["active_agents"] == 1
     persisted = (tmp_path / "events.jsonl").read_text(encoding="utf-8")
     assert "agent_1" not in persisted
+
+
+def test_discord_accounts_has_deterministic_human_and_json_output(
+    monkeypatch,
+) -> None:
+    accounts = [
+        DiscordAccount(0, "personal-id", "__chef__", "Chef"),
+        DiscordAccount(1, "work-id", "alex.f", "alex"),
+    ]
+    monkeypatch.setattr(
+        cli_module, "discover_discord_accounts", lambda _client_id: accounts
+    )
+
+    human = CliRunner().invoke(
+        cli, ["discord-accounts", "--discord-client-id", "application-id"]
+    )
+    structured = CliRunner().invoke(
+        cli,
+        ["--json", "discord-accounts", "--discord-client-id", "application-id"],
+    )
+
+    assert human.exit_code == 0
+    assert human.output.splitlines() == [
+        "PIPE\tUSER ID\tUSERNAME\tDISPLAY NAME",
+        "0\tpersonal-id\t__chef__\tChef",
+        "1\twork-id\talex.f\talex",
+    ]
+    assert structured.exit_code == 0
+    assert json.loads(structured.output) == {
+        "accounts": [
+            {
+                "display_name": "Chef",
+                "pipe": 0,
+                "user_id": "personal-id",
+                "username": "__chef__",
+            },
+            {
+                "display_name": "alex",
+                "pipe": 1,
+                "user_id": "work-id",
+                "username": "alex.f",
+            },
+        ]
+    }
+
+
+def test_daemon_passes_discord_user_id_to_rpc_client(tmp_path, monkeypatch) -> None:
+    constructed: list[tuple[str, str | None]] = []
+
+    class FakeClient:
+        def __init__(self, client_id: str, user_id: str | None) -> None:
+            constructed.append((client_id, user_id))
+
+    class FakePublisher:
+        def __init__(self, _client: object) -> None:
+            pass
+
+        def publish(self, _presence: object) -> None:
+            pass
+
+        def close(self) -> None:
+            pass
+
+    monkeypatch.setattr(cli_module, "PypresenceClient", FakeClient)
+    monkeypatch.setattr(cli_module, "DiscordPublisher", FakePublisher)
+    monkeypatch.setattr(
+        cli_module,
+        "refresh",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(KeyboardInterrupt),
+    )
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "--state-dir",
+            str(tmp_path),
+            "--publication-mode",
+            "discord",
+            "daemon",
+            "--once",
+            "--discord-client-id",
+            "application-id",
+            "--discord-user-id",
+            "work-id",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert constructed == [("application-id", "work-id")]
 
 
 def test_isolated_preview_constructs_no_discord_publisher_or_rpc(

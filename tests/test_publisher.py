@@ -4,7 +4,11 @@ import pytest
 from pypresence import ActivityType
 
 from agent_away_message.models import Presence
-from agent_away_message.publisher import DiscordPublisher
+from agent_away_message.publisher import (
+    DiscordPublisher,
+    PypresenceClient,
+    discover_discord_accounts,
+)
 
 
 class FakeRpc:
@@ -177,3 +181,124 @@ def test_failed_clear_disconnects_the_transport() -> None:
 
     assert rpc.disconnects == 1
     assert publisher.connected is False
+
+
+class FakeWriter:
+    def __init__(self) -> None:
+        self.closed = False
+
+    def close(self) -> None:
+        self.closed = True
+
+    def is_closing(self) -> bool:
+        return self.closed
+
+
+class FakeAccountRpc:
+    def __init__(self, pipe: int, identity: tuple[str, str, str | None] | None) -> None:
+        self.pipe = pipe
+        self.identity = identity
+        self.sock_reader = object()
+        self.writer = FakeWriter()
+        self.sock_writer: FakeWriter | None = self.writer
+        self.updates = 0
+        self.ready_payload: dict[str, object] = {}
+
+    def connect(self) -> None:
+        if self.identity is None:
+            from pypresence.exceptions import DiscordNotFound
+
+            raise DiscordNotFound
+        user_id, username, display_name = self.identity
+        self.ready_payload = {
+            "data": {
+                "user": {
+                    "id": user_id,
+                    "username": username,
+                    "global_name": display_name,
+                }
+            }
+        }
+
+    def update(self, **_kwargs: object) -> None:
+        self.updates += 1
+
+    def clear(self) -> None:
+        return None
+
+    def close(self) -> None:
+        if self.sock_writer is not None:
+            self.sock_writer.close()
+
+
+class FakeAccountRpcFactory:
+    def __init__(self, identities: dict[int, tuple[str, str, str | None]]) -> None:
+        self.identities = identities
+        self.created: list[FakeAccountRpc] = []
+
+    def __call__(self, _client_id: str, *, pipe: int) -> FakeAccountRpc:
+        rpc = FakeAccountRpc(pipe, self.identities.get(pipe))
+        self.created.append(rpc)
+        return rpc
+
+
+def test_discover_discord_accounts_is_ordered_and_closes_every_probe() -> None:
+    factory = FakeAccountRpcFactory(
+        {
+            4: ("work-id", "alex.f", "alex"),
+            1: ("personal-id", "__chef__", "Chef"),
+        }
+    )
+
+    accounts = discover_discord_accounts("application-id", factory)
+
+    assert [(account.pipe, account.user_id) for account in accounts] == [
+        (1, "personal-id"),
+        (4, "work-id"),
+    ]
+    assert all(rpc.writer.closed for rpc in factory.created)
+    assert all(rpc.updates == 0 for rpc in factory.created)
+
+
+def test_account_selector_chooses_user_id_not_first_pipe() -> None:
+    factory = FakeAccountRpcFactory(
+        {
+            0: ("personal-id", "__chef__", "Chef"),
+            1: ("work-id", "alex.f", "alex"),
+        }
+    )
+    client = PypresenceClient("application-id", "work-id", factory)
+
+    client.connect()
+
+    assert client.rpc is not None
+    assert client.rpc.pipe == 1
+    personal = next(rpc for rpc in factory.created if rpc.pipe == 0)
+    selected = next(rpc for rpc in factory.created if rpc.pipe == 1)
+    assert personal.writer.closed is True
+    assert selected.writer.closed is False
+
+
+def test_account_selector_fails_closed_when_user_is_absent() -> None:
+    factory = FakeAccountRpcFactory({0: ("personal-id", "__chef__", "Chef")})
+    client = PypresenceClient("application-id", "work-id", factory)
+
+    with pytest.raises(ConnectionError, match="configured Discord account"):
+        client.connect()
+
+    assert all(rpc.writer.closed for rpc in factory.created)
+
+
+def test_account_selector_rediscovers_after_disconnect() -> None:
+    factory = FakeAccountRpcFactory({1: ("work-id", "alex.f", "alex")})
+    client = PypresenceClient("application-id", "work-id", factory)
+    client.connect()
+    assert client.rpc is not None
+    assert client.rpc.pipe == 1
+
+    client.disconnect()
+    factory.identities = {0: ("work-id", "alex.f", "alex")}
+    client.connect()
+
+    assert client.rpc is not None
+    assert client.rpc.pipe == 0

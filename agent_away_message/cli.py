@@ -89,6 +89,7 @@ from agent_away_message.publisher import (
     MemoryPublisher,
     Publisher,
     PypresenceClient,
+    discover_discord_accounts,
 )
 from agent_away_message.session_inspector import SessionInspectionError, inspect_session
 from agent_away_message.store import EventStore, EventStoreError
@@ -363,6 +364,42 @@ def cli(
     context.obj = AppContext(settings, as_json, resolved_config_path)
 
 
+@cli.command("discord-accounts")
+@click.option(
+    "--discord-client-id",
+    required=True,
+    help="Discord application client ID used for local IPC handshakes.",
+)
+@click.pass_obj
+def discord_accounts(app: AppContext, discord_client_id: str) -> None:
+    """List Discord accounts reachable through local desktop IPC."""
+    try:
+        accounts = discover_discord_accounts(discord_client_id)
+    except (ConnectionError, OSError) as error:
+        raise click.ClickException(str(error)) from error
+    payload = [
+        {
+            "pipe": account.pipe,
+            "user_id": account.user_id,
+            "username": account.username,
+            "display_name": account.display_name,
+        }
+        for account in accounts
+    ]
+    if app.as_json:
+        click.echo(json.dumps({"accounts": payload}, sort_keys=True))
+        return
+    if not payload:
+        click.echo("No reachable Discord accounts.")
+        return
+    click.echo("PIPE\tUSER ID\tUSERNAME\tDISPLAY NAME")
+    for account in payload:
+        click.echo(
+            f"{account['pipe']}\t{account['user_id']}\t{account['username']}\t"
+            f"{account['display_name'] or ''}"
+        )
+
+
 @cli.command()
 @click.option(
     "--once", is_flag=True, help="Refresh once instead of running continuously."
@@ -371,9 +408,17 @@ def cli(
 @click.option(
     "--discord-client-id", help="Discord application client ID for discord mode."
 )
+@click.option(
+    "--discord-user-id",
+    help="Publish only through the local Discord account with this stable user ID.",
+)
 @click.pass_obj
 def daemon(
-    app: AppContext, once: bool, interval: int, discord_client_id: str | None
+    app: AppContext,
+    once: bool,
+    interval: int,
+    discord_client_id: str | None,
+    discord_user_id: str | None,
 ) -> None:
     """Run the foreground service loop; preview is the default publication mode."""
     if not once:
@@ -399,7 +444,9 @@ def daemon(
             raise click.ClickException(
                 "--discord-client-id is required in discord mode"
             )
-        publisher = DiscordPublisher(PypresenceClient(discord_client_id))
+        publisher = DiscordPublisher(
+            PypresenceClient(discord_client_id, discord_user_id)
+        )
     else:
         publisher = MemoryPublisher()
     try:
